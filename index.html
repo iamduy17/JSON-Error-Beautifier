@@ -309,6 +309,20 @@
                 this.debugLogs.push(message);
                 console.log(`[JSON Parser]: ${message}`);
             }
+			
+			decodeUnicodeEscapes(inputStr) {
+                if (!inputStr) return "";
+                
+                // Decode Unicode escape sequences like \u0022
+                return inputStr.replace(/\\u([0-9a-fA-F]{4})/g, (match, hex) => {
+                    try {
+                        return String.fromCharCode(parseInt(hex, 16));
+                    } catch (e) {
+                        this.log(`Failed to decode Unicode escape: ${match}`);
+                        return match; // Return original if decoding fails
+                    }
+                });
+            }
 
             normalizeInput(inputStr) {
                 if (!inputStr) return "";
@@ -318,6 +332,10 @@
                 inputStr = inputStr.replace(/[\x00-\x1f\x7f-\x9f]/g, '');
                 
                 this.log(`Input to normalize: ${inputStr.substring(0, 100)}`);
+				
+				// Decode Unicode escape sequences first
+                let normalized = this.decodeUnicodeEscapes(inputStr);
+                this.log(`After Unicode decode: ${normalized.substring(0, 100)}`);
                 
                 // Handle escaped quotes in JSON strings
                 let normalized = inputStr.replace(/\\"/g, '"');
