@@ -264,7 +264,7 @@
                         🗑️ Clear All
                     </button>
                     <button class="btn btn-success" onclick="copyToClipboard()">
-                        📋 Copy Result
+                        📋 Copy Result To Clipboard
                     </button>
                     <div class="loading" id="loading">
                         <div class="spinner"></div>
@@ -332,13 +332,13 @@
                 inputStr = inputStr.replace(/[\x00-\x1f\x7f-\x9f]/g, '');
                 
                 this.log(`Input to normalize: ${inputStr.substring(0, 100)}`);
-				
-				// Decode Unicode escape sequences first
+                
+                // Decode Unicode escape sequences first
                 let normalized = this.decodeUnicodeEscapes(inputStr);
                 this.log(`After Unicode decode: ${normalized.substring(0, 100)}`);
                 
                 // Handle escaped quotes in JSON strings
-                let normalized = inputStr.replace(/\\"/g, '"');
+                normalized = normalized.replace(/\\"/g, '"');
                 
                 this.log(`After quote normalization: ${normalized.substring(0, 100)}`);
                 
