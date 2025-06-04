@@ -1,690 +1,749 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Robust JSON Parser</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-            backdrop-filter: blur(10px);
-        }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+      }
 
-        .header {
-            background: linear-gradient(45deg, #2c3e50, #34495e);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
+      .header {
+        background: linear-gradient(45deg, #2c3e50, #34495e);
+        color: white;
+        padding: 30px;
+        text-align: center;
+      }
 
+      .header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+        font-weight: 300;
+      }
+
+      .header p {
+        opacity: 0.9;
+        font-size: 1.1rem;
+      }
+
+      .main-content {
+        padding: 40px;
+      }
+
+      .input-section,
+      .output-section {
+        margin-bottom: 30px;
+      }
+
+      .section-title {
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin-bottom: 15px;
+        color: #2c3e50;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .section-title::before {
+        content: "";
+        width: 4px;
+        height: 24px;
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        border-radius: 2px;
+      }
+
+      textarea,
+      .output-box {
+        width: 100%;
+        min-height: 200px;
+        border: 2px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 20px;
+        font-family: "Consolas", "Monaco", "Courier New", monospace;
+        font-size: 14px;
+        line-height: 1.5;
+        transition: all 0.3s ease;
+        resize: vertical;
+      }
+
+      textarea:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+
+      .output-box {
+        background: #f8f9fa;
+        border: 2px solid #e9ecef;
+        white-space: pre-wrap;
+        overflow-y: auto;
+        max-height: 400px;
+      }
+
+      .controls {
+        display: flex;
+        gap: 15px;
+        margin: 20px 0;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+
+      .btn {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .btn-primary {
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        color: white;
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+      }
+
+      .btn-secondary {
+        background: #6c757d;
+        color: white;
+      }
+
+      .btn-secondary:hover {
+        background: #5a6268;
+        transform: translateY(-2px);
+      }
+
+      .btn-success {
+        background: #28a745;
+        color: white;
+      }
+
+      .btn-success:hover {
+        background: #218838;
+        transform: translateY(-2px);
+      }
+
+      .status {
+        padding: 15px;
+        border-radius: 8px;
+        margin: 15px 0;
+        font-weight: 500;
+        display: none;
+      }
+
+      .status.success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+
+      .status.error {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin: 20px 0;
+      }
+
+      .stat-card {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        text-align: center;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e9ecef;
+      }
+
+      .stat-value {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #667eea;
+        margin-bottom: 5px;
+      }
+
+      .stat-label {
+        color: #6c757d;
+        font-size: 0.9rem;
+      }
+
+      @media (max-width: 768px) {
         .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            font-weight: 300;
-        }
-
-        .header p {
-            opacity: 0.9;
-            font-size: 1.1rem;
+          font-size: 2rem;
         }
 
         .main-content {
-            padding: 40px;
-        }
-
-        .input-section, .output-section {
-            margin-bottom: 30px;
-        }
-
-        .section-title {
-            font-size: 1.4rem;
-            font-weight: 600;
-            margin-bottom: 15px;
-            color: #2c3e50;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .section-title::before {
-            content: '';
-            width: 4px;
-            height: 24px;
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            border-radius: 2px;
-        }
-
-        textarea, .output-box {
-            width: 100%;
-            min-height: 200px;
-            border: 2px solid #e0e0e0;
-            border-radius: 12px;
-            padding: 20px;
-            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-            font-size: 14px;
-            line-height: 1.5;
-            transition: all 0.3s ease;
-            resize: vertical;
-        }
-
-        textarea:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .output-box {
-            background: #f8f9fa;
-            border: 2px solid #e9ecef;
-            white-space: pre-wrap;
-            overflow-y: auto;
-            max-height: 400px;
+          padding: 20px;
         }
 
         .controls {
-            display: flex;
-            gap: 15px;
-            margin: 20px 0;
-            flex-wrap: wrap;
-            align-items: center;
+          flex-direction: column;
+          align-items: stretch;
         }
 
         .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+          justify-content: center;
         }
+      }
 
-        .btn-primary {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white;
-        }
+      .loading {
+        display: none;
+        align-items: center;
+        gap: 10px;
+        color: #667eea;
+      }
 
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
-        }
+      .loading.show {
+        display: flex;
+      }
 
-        .btn-secondary {
-            background: #6c757d;
-            color: white;
-        }
+      .spinner {
+        width: 20px;
+        height: 20px;
+        border: 2px solid #e0e0e0;
+        border-top: 2px solid #667eea;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
 
-        .btn-secondary:hover {
-            background: #5a6268;
-            transform: translateY(-2px);
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
         }
-
-        .btn-success {
-            background: #28a745;
-            color: white;
+        100% {
+          transform: rotate(360deg);
         }
-
-        .btn-success:hover {
-            background: #218838;
-            transform: translateY(-2px);
-        }
-
-        .status {
-            padding: 15px;
-            border-radius: 8px;
-            margin: 15px 0;
-            font-weight: 500;
-            display: none;
-        }
-
-        .status.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .status.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-            margin: 20px 0;
-        }
-
-        .stat-card {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            text-align: center;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            border: 1px solid #e9ecef;
-        }
-
-        .stat-value {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: #667eea;
-            margin-bottom: 5px;
-        }
-
-        .stat-label {
-            color: #6c757d;
-            font-size: 0.9rem;
-        }
-
-        @media (max-width: 768px) {
-            .header h1 {
-                font-size: 2rem;
-            }
-            
-            .main-content {
-                padding: 20px;
-            }
-            
-            .controls {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            
-            .btn {
-                justify-content: center;
-            }
-        }
-
-        .loading {
-            display: none;
-            align-items: center;
-            gap: 10px;
-            color: #667eea;
-        }
-
-        .loading.show {
-            display: flex;
-        }
-
-        .spinner {
-            width: 20px;
-            height: 20px;
-            border: 2px solid #e0e0e0;
-            border-top: 2px solid #667eea;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <div class="header">
-            <h1>🔧 Robust JSON Parser</h1>
-            <p>Parse, fix, and beautify even the messiest JSON data</p>
+      <div class="header">
+        <h1>🔧 Robust JSON Parser</h1>
+        <p>Parse, fix, and beautify even the messiest JSON data</p>
+      </div>
+      <div class="main-content">
+        <div class="input-section">
+          <div class="section-title">📝 Input JSON</div>
+          <textarea
+            id="inputJson"
+            placeholder='Enter your JSON here... (e.g., {"key":"value"} or {"broken":json})'
+          ></textarea>
+          <div class="controls">
+            <button class="btn btn-primary" id="parseBtn">
+              🚀 Parse & Beautify
+            </button>
+            <button class="btn btn-secondary" id="clearBtn">
+              🗑️ Clear All
+            </button>
+            <button class="btn btn-success" id="copyBtn">
+              📋 Copy Result To Clipboard
+            </button>
+            <div class="loading" id="loading">
+              <div class="spinner"></div>
+              Processing...
+            </div>
+          </div>
         </div>
-        <div class="main-content">
-            <div class="input-section">
-                <div class="section-title">📝 Input JSON</div>
-                <textarea 
-                    id="inputJson" 
-                    placeholder='Enter your JSON here... (e.g., {"key":"value"} or {"broken":json})'
-                ></textarea>
-                <div class="controls">
-                    <button class="btn btn-primary" onclick="parseJson()">
-                        🚀 Parse & Beautify
-                    </button>
-                    <button class="btn btn-secondary" onclick="clearAll()">
-                        🗑️ Clear All
-                    </button>
-                    <button class="btn btn-success" onclick="copyToClipboard()">
-                        📋 Copy Result To Clipboard
-                    </button>
-                    <div class="loading" id="loading">
-                        <div class="spinner"></div>
-                        Processing...
-                    </div>
-                </div>
-            </div>
 
-            <div class="status" id="status"></div>
+        <div class="status" id="status"></div>
 
-            <div class="stats" id="stats" style="display: none;">
-                <div class="stat-card">
-                    <div class="stat-value" id="inputLength">0</div>
-                    <div class="stat-label">Input Characters</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="outputLength">0</div>
-                    <div class="stat-label">Output Characters</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="processingTime">0ms</div>
-                    <div class="stat-label">Processing Time</div>
-                </div>
-            </div>
-
-            <div class="output-section">
-                <div class="section-title">✨ Parsed & Beautified Output</div>
-                <div class="output-box" id="outputJson">Your parsed JSON will appear here...</div>
-            </div>
+        <div class="stats" id="stats" style="display: none">
+          <div class="stat-card">
+            <div class="stat-value" id="inputLength">0</div>
+            <div class="stat-label">Input Characters</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="outputLength">0</div>
+            <div class="stat-label">Output Characters</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="processingTime">0ms</div>
+            <div class="stat-label">Processing Time</div>
+          </div>
         </div>
+
+        <div class="output-section">
+          <div class="section-title">✨ Parsed & Beautified Output</div>
+          <div class="output-box" id="outputJson">
+            Your parsed JSON will appear here...
+          </div>
+        </div>
+      </div>
     </div>
 
     <script>
-        class RobustJSONParser {
-            constructor(maxDepth = 10, maxLengthLimit = 10000) {
-                this.maxDepth = maxDepth;
-                this.maxLengthLimit = maxLengthLimit;
-                this.debugLogs = [];
-            }
-
-            log(message) {
-                this.debugLogs.push(message);
-                console.log(`[JSON Parser]: ${message}`);
-            }
-			
-			decodeUnicodeEscapes(inputStr) {
-                if (!inputStr) return "";
-                
-                // Decode Unicode escape sequences like \u0022
-                return inputStr.replace(/\\u([0-9a-fA-F]{4})/g, (match, hex) => {
-                    try {
-                        return String.fromCharCode(parseInt(hex, 16));
-                    } catch (e) {
-                        this.log(`Failed to decode Unicode escape: ${match}`);
-                        return match; // Return original if decoding fails
-                    }
-                });
-            }
-
-            normalizeInput(inputStr) {
-                if (!inputStr) return "";
-                
-                // Remove surrounding whitespace and control characters
-                inputStr = inputStr.trim();
-                inputStr = inputStr.replace(/[\x00-\x1f\x7f-\x9f]/g, '');
-                
-                this.log(`Input to normalize: ${inputStr.substring(0, 100)}`);
-                
-                // Decode Unicode escape sequences first
-                let normalized = this.decodeUnicodeEscapes(inputStr);
-                this.log(`After Unicode decode: ${normalized.substring(0, 100)}`);
-                
-                // Handle escaped quotes in JSON strings
-                normalized = normalized.replace(/\\"/g, '"');
-                
-                this.log(`After quote normalization: ${normalized.substring(0, 100)}`);
-                
-                // Handle any remaining double backslashes
-                normalized = normalized.replace(/\\\\/g, '\\');
-                
-                this.log(`After backslash normalization: ${normalized.substring(0, 100)}`);
-                
-                // Fix unquoted property names (JavaScript-style objects)
-                normalized = normalized.replace(/([{\[,]\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)(\s*:)/g, '$1"$2"$3');
-                
-                // Fix missing commas between objects/arrays
-                normalized = normalized.replace(/([}\]"])\s*([{\[])/g, '$1,$2');
-                normalized = normalized.replace(/(\d)\s*([{\[])/g, '$1,$2');
-                
-                return normalized;
-            }
-
-            attemptStandardParse(inputStr) {
-                try {
-                    const parsed = JSON.parse(inputStr);
-                    this.log("Standard JSON parse succeeded");
-                    return { result: parsed, success: true };
-                } catch (e) {
-                    this.log(`Standard JSON parse failed: ${e.message}`);
-                    return { result: null, success: false };
-                }
-            }
-
-            detectAndFixIncompleteJson(inputStr) {
-                let braceCount = 0;
-                let bracketCount = 0;
-                let parenCount = 0;
-                let inString = false;
-                let quoteChar = null;
-                
-                for (let i = 0; i < inputStr.length; i++) {
-                    const char = inputStr[i];
-                    
-                    // Handle string detection
-                    if ((char === '"' || char === "'") && (i === 0 || inputStr[i-1] !== '\\')) {
-                        if (!inString) {
-                            inString = true;
-                            quoteChar = char;
-                        } else if (char === quoteChar) {
-                            inString = false;
-                            quoteChar = null;
-                        }
-                    } else if (!inString) {
-                        if (char === '{') braceCount++;
-                        else if (char === '}') braceCount--;
-                        else if (char === '[') bracketCount++;
-                        else if (char === ']') bracketCount--;
-                        else if (char === '(') parenCount++;
-                        else if (char === ')') parenCount--;
-                    }
-                }
-                
-                let result = inputStr;
-                
-                // Close unterminated strings
-                if (inString) {
-                    result += quoteChar;
-                    this.log(`Added missing closing quote: ${quoteChar}`);
-                }
-                
-                // Close unbalanced brackets/braces
-                if (braceCount > 0) {
-                    result += '}'.repeat(braceCount);
-                    this.log(`Added ${braceCount} closing braces`);
-                } else if (braceCount < 0) {
-                    result = '{'.repeat(Math.abs(braceCount)) + result;
-                    this.log(`Added ${Math.abs(braceCount)} opening braces`);
-                }
-                
-                if (bracketCount > 0) {
-                    result += ']'.repeat(bracketCount);
-                    this.log(`Added ${bracketCount} closing brackets`);
-                } else if (bracketCount < 0) {
-                    result = '['.repeat(Math.abs(bracketCount)) + result;
-                    this.log(`Added ${Math.abs(bracketCount)} opening brackets`);
-                }
-                
-                if (parenCount > 0) {
-                    result += ')'.repeat(parenCount);
-                    this.log(`Added ${parenCount} closing parentheses`);
-                } else if (parenCount < 0) {
-                    result = '('.repeat(Math.abs(parenCount)) + result;
-                    this.log(`Added ${Math.abs(parenCount)} opening parentheses`);
-                }
-                
-                return result;
-            }
-
-            isJsonLikeString(value) {
-                if (typeof value !== 'string') return false;
-                
-                const trimmed = value.trim();
-                return (trimmed.startsWith('{') && trimmed.endsWith('}')) ||
-                       (trimmed.startsWith('[') && trimmed.endsWith(']'));
-            }
-
-            unescapeJsonString(s) {
-                if (typeof s !== 'string') return s;
-                
-                try {
-                    // Handle double-escaped quotes first
-                    s = s.replace(/\\\\"/g, '"');
-                    
-                    // Handle other common escape sequences
-                    s = s.replace(/\\\\/g, '\\');
-                    s = s.replace(/\\//g, '/');
-                    s = s.replace(/\\b/g, '\b');
-                    s = s.replace(/\\f/g, '\f');
-                    s = s.replace(/\\n/g, '\n');
-                    s = s.replace(/\\r/g, '\r');
-                    s = s.replace(/\\t/g, '\t');
-                    
-                    return s;
-                } catch (e) {
-                    return s;
-                }
-            }
-
-            extractAndParseNestedJson(obj, depth = 0) {
-                if (depth > this.maxDepth) {
-                    this.log(`Max recursion depth ${this.maxDepth} reached`);
-                    return obj;
-                }
-
-                if (typeof obj === 'object' && obj !== null && !Array.isArray(obj)) {
-                    const result = {};
-                    for (const [key, value] of Object.entries(obj)) {
-                        if (this.isJsonLikeString(value)) {
-                            try {
-                                const unescaped = this.unescapeJsonString(value);
-                                const parsedNested = JSON.parse(unescaped);
-                                result[key] = this.extractAndParseNestedJson(parsedNested, depth + 1);
-                                this.log(`Successfully parsed nested JSON for key: ${key}`);
-                            } catch (e) {
-                                this.log(`Failed to parse nested JSON for key ${key}: ${e.message}`);
-                                result[key] = value;
-                            }
-                        } else {
-                            result[key] = this.extractAndParseNestedJson(value, depth + 1);
-                        }
-                    }
-                    return result;
-                } else if (Array.isArray(obj)) {
-                    const result = [];
-                    for (let i = 0; i < obj.length; i++) {
-                        const item = obj[i];
-                        if (this.isJsonLikeString(item)) {
-                            try {
-                                const unescaped = this.unescapeJsonString(item);
-                                const parsedNested = JSON.parse(unescaped);
-                                result.push(this.extractAndParseNestedJson(parsedNested, depth + 1));
-                                this.log(`Successfully parsed nested JSON at index: ${i}`);
-                            } catch (e) {
-                                this.log(`Failed to parse nested JSON at index ${i}: ${e.message}`);
-                                result.push(item);
-                            }
-                        } else {
-                            result.push(this.extractAndParseNestedJson(item, depth + 1));
-                        }
-                    }
-                    return result;
-                }
-                
-                return obj;
-            }
-
-            extractLongestValidJsonSubstring(inputStr) {
-                if (!inputStr) return {};
-                
-                const maxLength = Math.min(inputStr.length, this.maxLengthLimit);
-                
-                for (let length = maxLength; length > 0; length--) {
-                    for (let start = 0; start <= inputStr.length - length; start++) {
-                        const substring = inputStr.substring(start, start + length);
-                        const trimmed = substring.trim();
-                        
-                        if (!((trimmed.startsWith('{') && trimmed.endsWith('}')) ||
-                              (trimmed.startsWith('[') && trimmed.endsWith(']')))) {
-                            continue;
-                        }
-                        
-                        try {
-                            const parsed = JSON.parse(substring);
-                            this.log(`Found valid JSON substring of length ${length} at position ${start}`);
-                            return parsed;
-                        } catch (e) {
-                            continue;
-                        }
-                    }
-                }
-                
-                this.log("No valid JSON substring found");
-                return {};
-            }
-
-            parse(inputStr) {
-                this.debugLogs = [];
-                
-                if (!inputStr) return {};
-                
-                // Step 1: Initial preprocessing
-                const normalized = this.normalizeInput(inputStr);
-                this.log(`Normalized input: ${normalized.substring(0, 200)}...`);
-                
-                // Step 2: Attempt standard parse
-                let parseResult = this.attemptStandardParse(normalized);
-                if (parseResult.success) {
-                    return this.extractAndParseNestedJson(parseResult.result);
-                }
-                
-                // Step 3: Detect and fix incomplete JSON
-                const fixed = this.detectAndFixIncompleteJson(normalized);
-                this.log(`Fixed input: ${fixed.substring(0, 200)}...`);
-                
-                // Retry parsing with fixed input
-                parseResult = this.attemptStandardParse(fixed);
-                if (parseResult.success) {
-                    return this.extractAndParseNestedJson(parseResult.result);
-                }
-                
-                // Step 5: Partial parsing fallback
-                this.log("Attempting partial parsing...");
-                const partialResult = this.extractLongestValidJsonSubstring(fixed);
-                
-                return this.extractAndParseNestedJson(partialResult);
-            }
+      class RobustJSONParser {
+        constructor(maxDepth = 10, maxLengthLimit = 10000) {
+          this.maxDepth = maxDepth;
+          this.maxLengthLimit = maxLengthLimit;
+          this.debugLogs = [];
         }
 
-        // Global parser instance
-        const jsonParser = new RobustJSONParser();
-
-        function showStatus(message, type = 'success') {
-            const statusEl = document.getElementById('status');
-            statusEl.textContent = message;
-            statusEl.className = `status ${type}`;
-            statusEl.style.display = 'block';
-            
-            setTimeout(() => {
-                statusEl.style.display = 'none';
-            }, 5000);
+        log(message) {
+          this.debugLogs.push(message);
+          console.log(`[JSON Parser]: ${message}`);
         }
 
-        function updateStats(inputLength, outputLength, processingTime) {
-            document.getElementById('inputLength').textContent = inputLength;
-            document.getElementById('outputLength').textContent = outputLength;
-            document.getElementById('processingTime').textContent = `${processingTime}ms`;
-            document.getElementById('stats').style.display = 'grid';
-        }
+        decodeUnicodeEscapes(inputStr) {
+          if (!inputStr) return "";
 
-        function parseJson() {
-            const inputEl = document.getElementById('inputJson');
-            const outputEl = document.getElementById('outputJson');
-            const loadingEl = document.getElementById('loading');
-            
-            const input = inputEl.value.trim();
-            
-            if (!input) {
-                showStatus('Please enter some JSON to parse', 'error');
-                return;
-            }
-            
-            loadingEl.classList.add('show');
-            
-            // Use setTimeout to allow UI to update
-            setTimeout(() => {
-                try {
-                    const startTime = performance.now();
-                    
-                    const parsed = jsonParser.parse(input);
-                    const beautified = JSON.stringify(parsed, null, 2);
-                    
-                    const endTime = performance.now();
-                    const processingTime = Math.round(endTime - startTime);
-                    
-                    outputEl.textContent = beautified;
-                    
-                    updateStats(input.length, beautified.length, processingTime);
-                    showStatus(`✅ Successfully parsed and beautified JSON! (${processingTime}ms)`, 'success');
-					
-					// Smooth scroll to bottom
-					window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-                    
-                } catch (error) {
-                    outputEl.textContent = `Error: ${error.message}`;
-                    showStatus(`❌ Failed to parse JSON: ${error.message}`, 'error');
-                } finally {
-                    loadingEl.classList.remove('show');
-                }
-            }, 100);
-        }
-
-        function clearAll() {
-            document.getElementById('inputJson').value = '';
-            document.getElementById('outputJson').textContent = 'Your parsed JSON will appear here...';
-            document.getElementById('stats').style.display = 'none';
-            showStatus('🗑️ Cleared all content', 'success');
-        }
-
-        async function copyToClipboard() {
-            const outputEl = document.getElementById('outputJson');
-            const text = outputEl.textContent;
-            
-            if (text === 'Your parsed JSON will appear here...') {
-                showStatus('❌ No content to copy', 'error');
-                return;
-            }
-            
+          // Decode Unicode escape sequences like \u0022
+          return inputStr.replace(/\\u([0-9a-fA-F]{4})/g, (match, hex) => {
             try {
-                await navigator.clipboard.writeText(text);
-                showStatus('📋 Copied to clipboard!', 'success');
-            } catch (err) {
-                // Fallback for older browsers
-                const textArea = document.createElement('textarea');
-                textArea.value = text;
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textArea);
-                showStatus('📋 Copied to clipboard!', 'success');
+              return String.fromCharCode(parseInt(hex, 16));
+            } catch (e) {
+              this.log(`Failed to decode Unicode escape: ${match}`);
+              return match; // Return original if decoding fails
             }
+          });
         }
+
+        normalizeInput(inputStr) {
+          if (!inputStr) return "";
+
+          // Remove surrounding whitespace and control characters
+          inputStr = inputStr.trim();
+          inputStr = inputStr.replace(/[\x00-\x1f\x7f-\x9f]/g, "");
+
+          this.log(`Input to normalize: ${inputStr.substring(0, 100)}`);
+
+          // Decode Unicode escape sequences first
+          let normalized = this.decodeUnicodeEscapes(inputStr);
+          this.log(`After Unicode decode: ${normalized.substring(0, 100)}`);
+
+          // Handle escaped quotes in JSON strings
+          normalized = normalized.replace(/\\"/g, '"');
+
+          this.log(
+            `After quote normalization: ${normalized.substring(0, 100)}`
+          );
+
+          // Handle any remaining double backslashes
+          normalized = normalized.replace(/\\\\/g, "\\");
+
+          this.log(
+            `After backslash normalization: ${normalized.substring(0, 100)}`
+          );
+
+          // Fix unquoted property names (JavaScript-style objects)
+          normalized = normalized.replace(
+            /([{\[,]\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)(\s*:)/g,
+            '$1"$2"$3'
+          );
+
+          // Fix missing commas between objects/arrays
+          normalized = normalized.replace(/([}\]"])\s*([{\[])/g, "$1,$2");
+          normalized = normalized.replace(/(\d)\s*([{\[])/g, "$1,$2");
+
+          return normalized;
+        }
+
+        attemptStandardParse(inputStr) {
+          try {
+            const parsed = JSON.parse(inputStr);
+            this.log("Standard JSON parse succeeded");
+            return { result: parsed, success: true };
+          } catch (e) {
+            this.log(`Standard JSON parse failed: ${e.message}`);
+            return { result: null, success: false };
+          }
+        }
+
+        detectAndFixIncompleteJson(inputStr) {
+          let braceCount = 0;
+          let bracketCount = 0;
+          let parenCount = 0;
+          let inString = false;
+          let quoteChar = null;
+
+          for (let i = 0; i < inputStr.length; i++) {
+            const char = inputStr[i];
+
+            // Handle string detection
+            if (
+              (char === '"' || char === "'") &&
+              (i === 0 || inputStr[i - 1] !== "\\")
+            ) {
+              if (!inString) {
+                inString = true;
+                quoteChar = char;
+              } else if (char === quoteChar) {
+                inString = false;
+                quoteChar = null;
+              }
+            } else if (!inString) {
+              if (char === "{") braceCount++;
+              else if (char === "}") braceCount--;
+              else if (char === "[") bracketCount++;
+              else if (char === "]") bracketCount--;
+              else if (char === "(") parenCount++;
+              else if (char === ")") parenCount--;
+            }
+          }
+
+          let result = inputStr;
+
+          // Close unterminated strings
+          if (inString) {
+            result += quoteChar;
+            this.log(`Added missing closing quote: ${quoteChar}`);
+          }
+
+          // Close unbalanced brackets/braces
+          if (braceCount > 0) {
+            result += "}".repeat(braceCount);
+            this.log(`Added ${braceCount} closing braces`);
+          } else if (braceCount < 0) {
+            result = "{".repeat(Math.abs(braceCount)) + result;
+            this.log(`Added ${Math.abs(braceCount)} opening braces`);
+          }
+
+          if (bracketCount > 0) {
+            result += "]".repeat(bracketCount);
+            this.log(`Added ${bracketCount} closing brackets`);
+          } else if (bracketCount < 0) {
+            result = "[".repeat(Math.abs(bracketCount)) + result;
+            this.log(`Added ${Math.abs(bracketCount)} opening brackets`);
+          }
+
+          if (parenCount > 0) {
+            result += ")".repeat(parenCount);
+            this.log(`Added ${parenCount} closing parentheses`);
+          } else if (parenCount < 0) {
+            result = "(".repeat(Math.abs(parenCount)) + result;
+            this.log(`Added ${Math.abs(parenCount)} opening parentheses`);
+          }
+
+          return result;
+        }
+
+        isJsonLikeString(value) {
+          if (typeof value !== "string") return false;
+
+          const trimmed = value.trim();
+          return (
+            (trimmed.startsWith("{") && trimmed.endsWith("}")) ||
+            (trimmed.startsWith("[") && trimmed.endsWith("]"))
+          );
+        }
+
+        unescapeJsonString(s) {
+          if (typeof s !== "string") return s;
+
+          try {
+            // Handle double-escaped quotes first
+            s = s.replace(/\\\\"/g, '"');
+
+            // Handle other common escape sequences
+            s = s.replace(/\\\\/g, "\\");
+            s = s.replace(/\\/ / g, "/");
+            s = s.replace(/\\b/g, "\b");
+            s = s.replace(/\\f/g, "\f");
+            s = s.replace(/\\n/g, "\n");
+            s = s.replace(/\\r/g, "\r");
+            s = s.replace(/\\t/g, "\t");
+
+            return s;
+          } catch (e) {
+            return s;
+          }
+        }
+
+        extractAndParseNestedJson(obj, depth = 0) {
+          if (depth > this.maxDepth) {
+            this.log(`Max recursion depth ${this.maxDepth} reached`);
+            return obj;
+          }
+
+          if (typeof obj === "object" && obj !== null && !Array.isArray(obj)) {
+            const result = {};
+            for (const [key, value] of Object.entries(obj)) {
+              if (this.isJsonLikeString(value)) {
+                try {
+                  const unescaped = this.unescapeJsonString(value);
+                  const parsedNested = JSON.parse(unescaped);
+                  result[key] = this.extractAndParseNestedJson(
+                    parsedNested,
+                    depth + 1
+                  );
+                  this.log(`Successfully parsed nested JSON for key: ${key}`);
+                } catch (e) {
+                  this.log(
+                    `Failed to parse nested JSON for key ${key}: ${e.message}`
+                  );
+                  result[key] = value;
+                }
+              } else {
+                result[key] = this.extractAndParseNestedJson(value, depth + 1);
+              }
+            }
+            return result;
+          } else if (Array.isArray(obj)) {
+            const result = [];
+            for (let i = 0; i < obj.length; i++) {
+              const item = obj[i];
+              if (this.isJsonLikeString(item)) {
+                try {
+                  const unescaped = this.unescapeJsonString(item);
+                  const parsedNested = JSON.parse(unescaped);
+                  result.push(
+                    this.extractAndParseNestedJson(parsedNested, depth + 1)
+                  );
+                  this.log(`Successfully parsed nested JSON at index: ${i}`);
+                } catch (e) {
+                  this.log(
+                    `Failed to parse nested JSON at index ${i}: ${e.message}`
+                  );
+                  result.push(item);
+                }
+              } else {
+                result.push(this.extractAndParseNestedJson(item, depth + 1));
+              }
+            }
+            return result;
+          }
+
+          return obj;
+        }
+
+        extractLongestValidJsonSubstring(inputStr) {
+          if (!inputStr) return {};
+
+          const maxLength = Math.min(inputStr.length, this.maxLengthLimit);
+
+          for (let length = maxLength; length > 0; length--) {
+            for (let start = 0; start <= inputStr.length - length; start++) {
+              const substring = inputStr.substring(start, start + length);
+              const trimmed = substring.trim();
+
+              if (
+                !(
+                  (trimmed.startsWith("{") && trimmed.endsWith("}")) ||
+                  (trimmed.startsWith("[") && trimmed.endsWith("]"))
+                )
+              ) {
+                continue;
+              }
+
+              try {
+                const parsed = JSON.parse(substring);
+                this.log(
+                  `Found valid JSON substring of length ${length} at position ${start}`
+                );
+                return parsed;
+              } catch (e) {
+                continue;
+              }
+            }
+          }
+
+          this.log("No valid JSON substring found");
+          return {};
+        }
+
+        parse(inputStr) {
+          this.debugLogs = [];
+
+          if (!inputStr) return {};
+
+          // Step 1: Initial preprocessing
+          const normalized = this.normalizeInput(inputStr);
+          this.log(`Normalized input: ${normalized.substring(0, 200)}...`);
+
+          // Step 2: Attempt standard parse
+          let parseResult = this.attemptStandardParse(normalized);
+          if (parseResult.success) {
+            return this.extractAndParseNestedJson(parseResult.result);
+          }
+
+          // Step 3: Detect and fix incomplete JSON
+          const fixed = this.detectAndFixIncompleteJson(normalized);
+          this.log(`Fixed input: ${fixed.substring(0, 200)}...`);
+
+          // Retry parsing with fixed input
+          parseResult = this.attemptStandardParse(fixed);
+          if (parseResult.success) {
+            return this.extractAndParseNestedJson(parseResult.result);
+          }
+
+          // Step 5: Partial parsing fallback
+          this.log("Attempting partial parsing...");
+          const partialResult = this.extractLongestValidJsonSubstring(fixed);
+
+          return this.extractAndParseNestedJson(partialResult);
+        }
+      }
+
+      // Global parser instance
+      const jsonParser = new RobustJSONParser();
+
+      // DOM elements
+      let inputEl, outputEl, loadingEl, statusEl, statsEl;
+      let inputLengthEl, outputLengthEl, processingTimeEl;
+      let parseBtn, clearBtn, copyBtn;
+
+      // Initialize when DOM is loaded
+      document.addEventListener("DOMContentLoaded", function () {
+        // Get DOM elements
+        inputEl = document.getElementById("inputJson");
+        outputEl = document.getElementById("outputJson");
+        loadingEl = document.getElementById("loading");
+        statusEl = document.getElementById("status");
+        statsEl = document.getElementById("stats");
+        inputLengthEl = document.getElementById("inputLength");
+        outputLengthEl = document.getElementById("outputLength");
+        processingTimeEl = document.getElementById("processingTime");
+
+        parseBtn = document.getElementById("parseBtn");
+        clearBtn = document.getElementById("clearBtn");
+        copyBtn = document.getElementById("copyBtn");
+
+        // Add event listeners
+        parseBtn.addEventListener("click", parseJson);
+        clearBtn.addEventListener("click", clearAll);
+        copyBtn.addEventListener("click", copyToClipboard);
 
         // Add keyboard shortcuts
-        document.addEventListener('keydown', function(e) {
-            if (e.ctrlKey || e.metaKey) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    parseJson();
-                } else if (e.key === 'l') {
-                    e.preventDefault();
-                    clearAll();
-                }
+        document.addEventListener("keydown", function (e) {
+          if (e.ctrlKey || e.metaKey) {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              parseJson();
+            } else if (e.key === "l") {
+              e.preventDefault();
+              clearAll();
             }
+          }
         });
 
-        // Add sample data for demonstration
-        window.addEventListener('load', function() {
-            const sampleJson = `{\"Id\":103619,\"CurriculumVitaeId\":\"01JWQQGK28CYH2Z8VZA40G6G6Q\",\"Name\":\"HADOOP\"}`;
-            document.getElementById('inputJson').value = sampleJson;
-        });
+        // Load sample data
+        const sampleJson = `{\"Id\":103619,\"CurriculumVitaeId\":\"01JWQQGK28CYH2Z8VZA40G6G6Q\",\"Name\":\"HADOOP\"}`;
+        inputEl.value = sampleJson;
+      });
+
+      function showStatus(message, type = "success") {
+        statusEl.textContent = message;
+        statusEl.className = `status ${type}`;
+        statusEl.style.display = "block";
+
+        setTimeout(() => {
+          statusEl.style.display = "none";
+        }, 5000);
+      }
+
+      function updateStats(inputLength, outputLength, processingTime) {
+        inputLengthEl.textContent = inputLength;
+        outputLengthEl.textContent = outputLength;
+        processingTimeEl.textContent = `${processingTime}ms`;
+        statsEl.style.display = "grid";
+      }
+
+      function parseJson() {
+        const input = inputEl.value.trim();
+
+        if (!input) {
+          showStatus("Please enter some JSON to parse", "error");
+          return;
+        }
+
+        loadingEl.classList.add("show");
+
+        // Use setTimeout to allow UI to update
+        setTimeout(() => {
+          try {
+            const startTime = performance.now();
+
+            const parsed = jsonParser.parse(input);
+            const beautified = JSON.stringify(parsed, null, 2);
+
+            const endTime = performance.now();
+            const processingTime = Math.round(endTime - startTime);
+
+            outputEl.textContent = beautified;
+
+            updateStats(input.length, beautified.length, processingTime);
+            showStatus(
+              `✅ Successfully parsed and beautified JSON! (${processingTime}ms)`,
+              "success"
+            );
+
+            // Smooth scroll to bottom
+            window.scrollTo({
+              top: document.body.scrollHeight,
+              behavior: "smooth",
+            });
+          } catch (error) {
+            outputEl.textContent = `Error: ${error.message}`;
+            showStatus(`❌ Failed to parse JSON: ${error.message}`, "error");
+          } finally {
+            loadingEl.classList.remove("show");
+          }
+        }, 100);
+      }
+
+      function clearAll() {
+        inputEl.value = "";
+        outputEl.textContent = "Your parsed JSON will appear here...";
+        statsEl.style.display = "none";
+        showStatus("🗑️ Cleared all content", "success");
+      }
+
+      async function copyToClipboard() {
+        const text = outputEl.textContent;
+
+        if (text === "Your parsed JSON will appear here...") {
+          showStatus("❌ No content to copy", "error");
+          return;
+        }
+
+        try {
+          await navigator.clipboard.writeText(text);
+          showStatus("📋 Copied to clipboard!", "success");
+        } catch (err) {
+          // Fallback for older browsers
+          const textArea = document.createElement("textarea");
+          textArea.value = text;
+          document.body.appendChild(textArea);
+          textArea.select();
+          document.execCommand("copy");
+          document.body.removeChild(textArea);
+          showStatus("📋 Copied to clipboard!", "success");
+        }
+      }
     </script>
-</body>
+  </body>
 </html>
